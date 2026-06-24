@@ -10,6 +10,18 @@ st.markdown(
     "PawPal+ build a schedule sorted by priority and limited by your available time."
 )
 
+# Sidebar: reset control + a note about how session data behaves.
+with st.sidebar:
+    st.header("Options")
+    if st.button("Reset app data"):
+        # Clearing the owner wipes all pets and tasks for a fresh start.
+        st.session_state.pop("owner", None)
+        st.success("App data cleared. Enter owner info to start again.")
+    st.caption(
+        "Your data lives in this browser session. It is kept while the app is "
+        "open, but resets when the app restarts or you click **Reset app data**."
+    )
+
 # ---------------------------------------------------------------------------
 # 1. Owner info (stored in session_state so data persists between clicks).
 # ---------------------------------------------------------------------------
@@ -156,6 +168,8 @@ if st.button("Generate schedule"):
                         "task": task.title,
                         "duration (min)": task.duration_minutes,
                         "priority": task.priority,
+                        "frequency": task.frequency,
+                        "completed": task.completed,
                     }
                     for position, task in enumerate(plan, start=1)
                 ]
