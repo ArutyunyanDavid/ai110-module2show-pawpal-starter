@@ -18,6 +18,14 @@ def test_adding_task_increases_count():
     assert len(pet.tasks) == 1
 
 
+def test_mark_complete_changes_status():
+    """Calling mark_complete() should flip completed from False to True."""
+    task = Task("Walk", duration_minutes=30, priority="high")
+    assert task.completed is False
+    task.mark_complete()
+    assert task.completed is True
+
+
 def test_plan_does_not_exceed_available_minutes():
     """The generated plan must fit within the owner's available minutes."""
     owner = Owner(name="Jordan", minutes_available=40)

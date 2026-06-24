@@ -79,6 +79,7 @@ The tests in `tests/test_pawpal.py` cover the most important behaviors:
 
 - **Priority ranking** — a high-priority task ranks higher than a low-priority one.
 - **Adding tasks** — adding a task to a pet increases that pet's task count.
+- **Task completion** — calling `mark_complete()` flips a task's `completed` flag to True.
 - **Time budget** — the generated plan never exceeds the owner's available minutes.
 
 Passing output:
@@ -88,11 +89,11 @@ Passing output:
 platform win32 -- Python 3.14.5, pytest-9.0.3, pluggy-1.6.0
 rootdir: C:\Users\aruty\Desktop\ai110-module2show-pawpal-starter
 plugins: anyio-4.13.0
-collected 3 items
+collected 4 items
 
-tests\test_pawpal.py ...                                                 [100%]
+tests\test_pawpal.py ....                                                [100%]
 
-============================== 3 passed in 0.10s ==============================
+============================== 4 passed in 0.04s ==============================
 ```
 
 ## 📐 Smarter Scheduling

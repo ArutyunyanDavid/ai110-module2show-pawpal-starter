@@ -22,11 +22,13 @@ class Task:
         title: Short name of the task (e.g. "Morning walk").
         duration_minutes: How long the task takes, in minutes.
         priority: How important the task is: "low", "medium", or "high".
+        completed: Whether the task has been done yet (starts False).
     """
 
     title: str
     duration_minutes: int
     priority: str = "medium"
+    completed: bool = False
 
     def priority_rank(self) -> int:
         """Turn the priority text into a number so tasks can be sorted.
@@ -35,6 +37,10 @@ class Task:
         unknown priority is treated as the lowest (0).
         """
         return PRIORITY_SCORES.get(self.priority, 0)
+
+    def mark_complete(self) -> None:
+        """Mark this task as done by setting completed to True."""
+        self.completed = True
 
 
 @dataclass
