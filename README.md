@@ -109,12 +109,18 @@ tests\test_pawpal.py ....                                                [100%]
 
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+Start the app with:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+```bash
+streamlit run app.py
+```
+
+Then follow these steps in the browser:
+
+1. **Enter owner info** — type your name and how many minutes you have today, then click **Save owner**.
+2. **Add a pet** — enter a pet name and species and click **Add pet**. Repeat for more pets.
+3. **Add tasks** — pick which pet a task is for, set its title, duration, and priority, then click **Add task**.
+4. **Generate the schedule** — click **Generate schedule** to see today's plan.
+5. **Read the plan** — the plan is sorted by priority (high → medium → low) and limited by your available time, so lower-priority tasks are skipped once time runs out. An explanation shows why each task was chosen.
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
