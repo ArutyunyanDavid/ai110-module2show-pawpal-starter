@@ -82,6 +82,12 @@ else:
     with col3:
         priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
 
+    col4, col5 = st.columns(2)
+    with col4:
+        task_time = st.text_input("Time (HH:MM)", value="09:00")
+    with col5:
+        frequency = st.selectbox("Frequency", ["once", "daily", "weekly"])
+
     if st.button("Add task"):
         # Find the Pet object the user selected, then add the Task to it.
         chosen_pet = owner.pets[pet_names.index(chosen_pet_name)]
@@ -90,10 +96,12 @@ else:
                 title=task_title,
                 duration_minutes=int(duration),
                 priority=priority,
+                time=task_time,
+                frequency=frequency,
                 completed=False,
             )
         )
-        st.success(f"Added task '{task_title}' to {chosen_pet_name}.")
+        st.success(f"Added task '{task_title}' to {chosen_pet_name} at {task_time}.")
 
     # Show all tasks across all pets.
     rows = []
@@ -103,8 +111,10 @@ else:
                 {
                     "pet": pet.name,
                     "task": task.title,
+                    "time": task.time,
                     "duration (min)": task.duration_minutes,
                     "priority": task.priority,
+                    "frequency": task.frequency,
                     "completed": task.completed,
                 }
             )
@@ -126,6 +136,12 @@ if st.button("Generate schedule"):
         st.warning("Add at least one task before generating a schedule.")
     else:
         scheduler = Scheduler(owner)
+
+        # Warn about any tasks scheduled at the exact same time.
+        conflicts = scheduler.detect_conflicts()
+        for warning in conflicts:
+            st.warning(warning)
+
         plan = scheduler.generate_plan()
 
         if not plan:
@@ -136,6 +152,7 @@ if st.button("Generate schedule"):
                 [
                     {
                         "order": position,
+                        "time": task.time,
                         "task": task.title,
                         "duration (min)": task.duration_minutes,
                         "priority": task.priority,
@@ -146,6 +163,7 @@ if st.button("Generate schedule"):
             st.subheader("Why this plan?")
             st.info(scheduler.explain_plan(plan))
             st.caption(
-                "Tasks are sorted highest priority first, and added only while "
-                "they fit within your available minutes."
+                "Tasks are sorted highest priority first (then by time), and added "
+                "only while they fit within your available minutes. Completed tasks "
+                "are skipped."
             )

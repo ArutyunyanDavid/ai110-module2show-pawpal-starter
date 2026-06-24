@@ -46,13 +46,29 @@ further design changes will be documented here after the scheduling logic is bui
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+The scheduler considers three things: the owner's available minutes for the day,
+each task's priority (high > medium > low), and each task's scheduled time. Time
+budget and priority mattered most, so `generate_plan()` sorts by priority first
+(then by time as a tie-breaker) and adds tasks only while they still fit within
+`owner.minutes_available`. Completed tasks are skipped entirely.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+The main Phase 4 tradeoff is in conflict detection. `detect_conflicts()` uses
+**simple exact-time matching** rather than advanced overlapping-duration
+detection. It only flags tasks that share the exact same `"HH:MM"` start time.
+
+This keeps the project beginner-friendly and easy to explain, but it means a
+9:00–9:30 task and a 9:15–9:45 task will **not** be flagged as a conflict unless
+they happen to start at the same minute. For this simple planning app that
+tradeoff is reasonable: the goal is a clear, understandable warning system, not a
+full calendar engine. Adding true overlap detection (comparing start + duration)
+would be the natural next improvement.
+
+Recurring tasks make a similar simplicity tradeoff: instead of tracking real
+calendar dates, `handle_recurring_task()` returns a copied, incomplete task with a
+`"(next daily)"` / `"(next weekly)"` note. This is easy to reason about but does
+not compute an actual next date.
 
 ---
 

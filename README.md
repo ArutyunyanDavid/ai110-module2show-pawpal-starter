@@ -44,28 +44,53 @@ pip install -r requirements.txt
 
 ## 🖥️ Sample Output
 
-Running `python main.py` builds an example owner with two pets and four tasks,
-then prints today's plan and the scheduler's explanation:
+Running `python main.py` builds an example owner with two pets and several
+tasks, then demonstrates the smarter scheduling features — time sorting,
+filtering, conflict detection, and recurring tasks:
 
 ```
-Today's Schedule
-================
-1. Morning walk (30 min) [priority: high]
-2. Feeding (10 min) [priority: high]
-3. Play time (15 min) [priority: medium]
+Today's Schedule (priority, then time)
+======================================
+1. 08:00 Morning walk (20 min) [priority: high]
+2. 08:00 Feeding (10 min) [priority: high]
+3. 18:00 Evening walk (30 min) [priority: high]
+
+All Tasks Sorted by Time
+========================
+08:00 - Morning walk
+08:00 - Feeding
+12:00 - Grooming
+15:00 - Play time
+18:00 - Evening walk
+
+Filtered: Incomplete Tasks Only
+===============================
+- Evening walk (18:00)
+- Morning walk (08:00)
+- Feeding (08:00)
+- Play time (15:00)
+
+Conflict Warnings
+=================
+! Conflict at 08:00: Morning walk, Feeding
+
+Recurring Task Example
+======================
+Marked complete: Morning walk (completed=True)
+Next occurrence created: Morning walk (next daily) at 08:00
 
 Explanation
 ===========
 Jordan has 60 minutes available.
-Chose 3 task(s) using 55 minute(s), highest priority first:
-  1. Morning walk (30 min, high priority)
-  2. Feeding (10 min, high priority)
-  3. Play time (15 min, medium priority)
+Chose 3 task(s) using 60 minute(s), highest priority first:
+  1. 08:00 Morning walk (20 min, high priority)
+  2. 08:00 Feeding (10 min, high priority)
+  3. 18:00 Evening walk (30 min, high priority)
 ```
 
-Note how the low-priority "Grooming" (25 min) task was skipped: the two
-high-priority tasks plus the medium one already used 55 of the 60 minutes,
-so grooming would not fit.
+Note how "Grooming" (completed) is skipped from the plan, and the medium
+"Play time" (15 min) doesn't fit because the three high-priority tasks already
+fill all 60 available minutes.
 
 ## 🧪 Testing PawPal+
 
@@ -81,6 +106,12 @@ The tests in `tests/test_pawpal.py` cover the most important behaviors:
 - **Adding tasks** — adding a task to a pet increases that pet's task count.
 - **Task completion** — calling `mark_complete()` flips a task's `completed` flag to True.
 - **Time budget** — the generated plan never exceeds the owner's available minutes.
+- **Time sorting** — `sort_by_time()` returns tasks in chronological order.
+- **Filtering** — `filter_tasks()` can select or exclude completed tasks.
+- **Conflict detection** — duplicate task times are flagged by `detect_conflicts()`.
+- **Recurring tasks** — completing a daily task creates a fresh next occurrence;
+  a one-time task returns `None`.
+- **Skipping completed tasks** — completed tasks never appear in the generated plan.
 
 Passing output:
 
@@ -89,23 +120,21 @@ Passing output:
 platform win32 -- Python 3.14.5, pytest-9.0.3, pluggy-1.6.0
 rootdir: C:\Users\aruty\Desktop\ai110-module2show-pawpal-starter
 plugins: anyio-4.13.0
-collected 4 items
+collected 10 items
 
-tests\test_pawpal.py ....                                                [100%]
+tests\test_pawpal.py ..........                                          [100%]
 
-============================== 4 passed in 0.04s ==============================
+============================= 10 passed in 0.06s ==============================
 ```
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
-
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | `Scheduler.sort_by_time()`, `Scheduler.generate_plan()` | `generate_plan()` sorts by priority (high → low) then time; `sort_by_time()` orders by `"HH:MM"` start time. |
+| Filtering | `Scheduler.filter_tasks()` | Filter by pet name and/or completion status. `generate_plan()` also filters out completed tasks. |
+| Conflict handling | `Scheduler.detect_conflicts()` | Lightweight exact-time match: flags two or more tasks sharing the same `"HH:MM"` start time. |
+| Recurring tasks | `Scheduler.handle_recurring_task()`, `Scheduler.mark_task_complete()` | `mark_task_complete()` marks a task done and, if it's `daily`/`weekly`, returns a fresh incomplete next occurrence; `once` returns `None`. |
 
 ## 📸 Demo Walkthrough
 

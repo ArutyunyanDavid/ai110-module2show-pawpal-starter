@@ -22,12 +22,16 @@ class Task:
         title: Short name of the task (e.g. "Morning walk").
         duration_minutes: How long the task takes, in minutes.
         priority: How important the task is: "low", "medium", or "high".
+        time: When the task is scheduled, in "HH:MM" format (e.g. "09:00").
+        frequency: How often it repeats: "once", "daily", or "weekly".
         completed: Whether the task has been done yet (starts False).
     """
 
     title: str
     duration_minutes: int
     priority: str = "medium"
+    time: str = "09:00"
+    frequency: str = "once"
     completed: bool = False
 
     def priority_rank(self) -> int:
@@ -111,20 +115,108 @@ class Scheduler:
             tasks.extend(pet.tasks)
         return tasks
 
+    def sort_by_time(self, tasks: list | None = None) -> list:
+        """Return tasks sorted by their "HH:MM" time, earliest first.
+
+        If tasks is None, sort every task from all of the owner's pets.
+        Because "HH:MM" strings sort the same way alphabetically as they do
+        chronologically (e.g. "08:00" < "09:30"), a plain string sort works.
+        """
+        if tasks is None:
+            tasks = self._all_tasks()
+        return sorted(tasks, key=lambda task: task.time)
+
+    def filter_tasks(
+        self, pet_name: str | None = None, completed: bool | None = None
+    ) -> list:
+        """Return tasks filtered by pet name and/or completion status.
+
+        - pet_name None  -> include tasks from every pet.
+        - completed None -> include both completed and incomplete tasks.
+        Otherwise, only tasks matching the given pet and/or status are kept.
+        """
+        results = []
+        for pet in self.owner.pets:
+            if pet_name is not None and pet.name != pet_name:
+                continue
+            for task in pet.tasks:
+                if completed is not None and task.completed != completed:
+                    continue
+                results.append(task)
+        return results
+
+    def detect_conflicts(self) -> list:
+        """Return readable warnings when two or more tasks share the same time.
+
+        Lightweight, exact-match check only: tasks with identical "HH:MM"
+        times are flagged. Returns an empty list when there are no clashes.
+        """
+        # Count how many tasks fall on each exact time.
+        times_seen = {}
+        for task in self._all_tasks():
+            times_seen.setdefault(task.time, []).append(task.title)
+
+        warnings = []
+        for time, titles in times_seen.items():
+            if len(titles) > 1:
+                joined = ", ".join(titles)
+                warnings.append(f"Conflict at {time}: {joined}")
+        return warnings
+
+    def handle_recurring_task(self, task: Task) -> Task | None:
+        """Create the next occurrence of a recurring task, or None if "once".
+
+        To stay beginner-friendly we don't track real calendar dates. Instead,
+        a recurring task produces a fresh, incomplete copy with the same time
+        and frequency and a small note in the title ("(next daily)" /
+        "(next weekly)") so it's clear it's the upcoming occurrence.
+        """
+        if task.frequency == "daily":
+            note = "(next daily)"
+        elif task.frequency == "weekly":
+            note = "(next weekly)"
+        else:
+            # "once" (or anything unrecognized) does not repeat.
+            return None
+
+        return Task(
+            title=f"{task.title} {note}",
+            duration_minutes=task.duration_minutes,
+            priority=task.priority,
+            time=task.time,
+            frequency=task.frequency,
+            completed=False,
+        )
+
+    def mark_task_complete(self, task: Task) -> Task | None:
+        """Mark a task complete and return its next occurrence if it recurs.
+
+        Returns the new recurring Task for "daily"/"weekly" tasks, or None
+        for a one-time ("once") task.
+        """
+        task.mark_complete()
+        return self.handle_recurring_task(task)
+
     def generate_plan(self) -> list:
         """Build today's plan: pick and order tasks that fit the time budget.
 
         Steps:
-        1. Gather every task across all pets.
-        2. Sort them so higher-priority tasks come first.
+        1. Gather every task across all pets and skip completed ones.
+        2. Sort by priority (highest first), then by time as a tie-breaker,
+           so important tasks come first and same-priority tasks stay in
+           chronological order.
         3. Add tasks one by one, skipping any that would push the total
            past the owner's available minutes.
 
         Returns an ordered list of the Tasks that made it into the plan.
         """
-        # Sort by priority, highest first. reverse=True puts the biggest rank on top.
+        # Only consider tasks that still need doing.
+        todo = [task for task in self._all_tasks() if not task.completed]
+
+        # Sort by priority high->low, then by time early->late within a priority.
+        # Negating the rank lets us keep a single ascending sort that reads clearly.
         sorted_tasks = sorted(
-            self._all_tasks(), key=lambda task: task.priority_rank(), reverse=True
+            todo, key=lambda task: (-task.priority_rank(), task.time)
         )
 
         plan = []
@@ -154,7 +246,7 @@ class Scheduler:
         ]
         for position, task in enumerate(plan, start=1):
             lines.append(
-                f"  {position}. {task.title} "
+                f"  {position}. {task.time} {task.title} "
                 f"({task.duration_minutes} min, {task.priority} priority)"
             )
         return "\n".join(lines)

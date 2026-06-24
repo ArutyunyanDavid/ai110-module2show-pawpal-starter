@@ -38,3 +38,87 @@ def test_plan_does_not_exceed_available_minutes():
     plan = Scheduler(owner).generate_plan()
     total_minutes = sum(task.duration_minutes for task in plan)
     assert total_minutes <= owner.minutes_available
+
+
+def _owner_with_pet(pet):
+    """Small helper: build an owner that already has the given pet."""
+    owner = Owner(name="Jordan", minutes_available=120)
+    owner.add_pet(pet)
+    return owner
+
+
+def test_sort_by_time_is_chronological():
+    """sort_by_time() should return tasks in earliest-to-latest order."""
+    pet = Pet(name="Biscuit", species="dog")
+    pet.add_task(Task("Evening walk", 30, time="18:00"))
+    pet.add_task(Task("Morning walk", 20, time="08:00"))
+    pet.add_task(Task("Lunch", 10, time="12:00"))
+    scheduler = Scheduler(_owner_with_pet(pet))
+
+    times = [task.time for task in scheduler.sort_by_time()]
+    assert times == ["08:00", "12:00", "18:00"]
+
+
+def test_filter_tasks_by_completion():
+    """filter_tasks() should select or exclude tasks by completion status."""
+    pet = Pet(name="Mochi", species="cat")
+    pet.add_task(Task("Feeding", 10, completed=True))
+    pet.add_task(Task("Play time", 15, completed=False))
+    scheduler = Scheduler(_owner_with_pet(pet))
+
+    done = scheduler.filter_tasks(completed=True)
+    not_done = scheduler.filter_tasks(completed=False)
+    assert [task.title for task in done] == ["Feeding"]
+    assert [task.title for task in not_done] == ["Play time"]
+
+
+def test_detect_conflicts_flags_duplicate_times():
+    """Two tasks at the same time should produce a conflict warning."""
+    pet = Pet(name="Biscuit", species="dog")
+    pet.add_task(Task("Walk", 20, time="09:00"))
+    pet.add_task(Task("Feeding", 10, time="09:00"))
+    pet.add_task(Task("Nap", 30, time="14:00"))
+    scheduler = Scheduler(_owner_with_pet(pet))
+
+    conflicts = scheduler.detect_conflicts()
+    assert len(conflicts) == 1
+    assert "09:00" in conflicts[0]
+
+
+def test_mark_daily_task_complete_creates_next_occurrence():
+    """Completing a daily task should return a fresh, incomplete next task."""
+    pet = Pet(name="Biscuit", species="dog")
+    daily = Task("Morning walk", 20, frequency="daily", time="08:00")
+    pet.add_task(daily)
+    scheduler = Scheduler(_owner_with_pet(pet))
+
+    next_task = scheduler.mark_task_complete(daily)
+    assert daily.completed is True
+    assert next_task is not None
+    assert next_task.completed is False
+    assert next_task.time == "08:00"
+    assert next_task.frequency == "daily"
+
+
+def test_mark_once_task_complete_returns_none():
+    """A one-time task should not produce a next occurrence."""
+    pet = Pet(name="Mochi", species="cat")
+    once = Task("Vet visit", 45, frequency="once")
+    pet.add_task(once)
+    scheduler = Scheduler(_owner_with_pet(pet))
+
+    assert scheduler.mark_task_complete(once) is None
+    assert once.completed is True
+
+
+def test_generate_plan_skips_completed_tasks():
+    """Completed tasks should never appear in the generated plan."""
+    owner = Owner(name="Jordan", minutes_available=120)
+    pet = Pet(name="Biscuit", species="dog")
+    pet.add_task(Task("Done walk", 20, priority="high", completed=True))
+    pet.add_task(Task("Feeding", 10, priority="high"))
+    owner.add_pet(pet)
+
+    titles = [task.title for task in Scheduler(owner).generate_plan()]
+    assert "Done walk" not in titles
+    assert "Feeding" in titles
