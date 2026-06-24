@@ -1,16 +1,44 @@
 # PawPal+ Project Reflection
 
-## 1. System Design
+# System Design
 
-**a. Initial design**
+PawPal+ supports three core user actions for a busy pet owner:
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+1. **Add owner and pet info.** The user enters their own name plus basic details
+   about their pet (name, species, and any care preferences). This gives the app
+   the context it needs before any planning can happen.
+2. **Add/edit pet care tasks.** The user adds tasks such as walks, feeding, meds,
+   or grooming. Every task has at least a title, a duration (in minutes), and a
+   priority (low / medium / high) so the scheduler knows how important it is and
+   how much time it needs.
+3. **Generate and view today's daily plan.** The user asks PawPal+ to build a plan
+   for the day. The scheduler looks at the available time and each task's priority,
+   chooses which tasks fit, orders them, and explains why it made those choices.
 
-**b. Design changes**
+## 1a. Initial design
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+My initial UML uses four classes, each with a clear responsibility:
+
+- **Owner** — represents the person using the app. Stores the owner's name,
+  available time, and preferences, and owns one or more pets.
+- **Pet** — represents a single pet. Stores the pet's name and species and holds
+  the list of care tasks that belong to that pet.
+- **Task** — represents one unit of pet care. Stores a title, duration (minutes),
+  and priority; it is the data the scheduler sorts and selects.
+- **Scheduler** — the "brain" of the app. It reads Owner / Pet / Task data and
+  produces an ordered daily plan plus a short explanation of its choices.
+
+The relationships are: an Owner *has many* Pets, a Pet *has many* Tasks, and the
+Scheduler *uses* Owner / Pet / Task data to generate the plan.
+
+## 1b. Design changes
+
+After reviewing the class skeleton, no major structural changes were needed — the
+four-class design (Owner / Pet / Task / Scheduler) stayed simple on purpose, which
+keeps it beginner-friendly and easy to implement in Phase 2. The one refinement
+made during cleanup was copying the UML draft from `diagrams/uml_draft.mmd` to
+`diagrams/uml.mmd` so the filename matches the project/grading expectations. Any
+further design changes will be documented here after the scheduling logic is built.
 
 ---
 
