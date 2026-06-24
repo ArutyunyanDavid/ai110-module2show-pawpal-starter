@@ -4,3 +4,6 @@ __pycache__/
 .venv_new/
 .pytest_cache/
 .DS_Store
+
+# Generated persistence file (saved pets/tasks); not committed.
+data.json

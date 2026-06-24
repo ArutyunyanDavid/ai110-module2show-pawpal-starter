@@ -1,6 +1,13 @@
 import streamlit as st
 
-from pawpal_system import Owner, Pet, Task, Scheduler
+from pawpal_system import (
+    Owner,
+    Pet,
+    Task,
+    Scheduler,
+    save_owner_to_json,
+    load_owner_from_json,
+)
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -10,16 +17,36 @@ st.markdown(
     "PawPal+ build a schedule sorted by priority and limited by your available time."
 )
 
-# Sidebar: reset control + a note about how session data behaves.
+# Sidebar: save/load/reset controls + a note about how session data behaves.
 with st.sidebar:
     st.header("Options")
+
+    # Save the current owner (with pets and tasks) to data.json.
+    if st.button("Save data"):
+        if "owner" in st.session_state:
+            save_owner_to_json(st.session_state.owner)
+            st.success("Saved your data to data.json.")
+        else:
+            st.warning("Nothing to save yet. Add owner info first.")
+
+    # Load a previously saved owner from data.json back into the session.
+    if st.button("Load data"):
+        loaded_owner = load_owner_from_json()
+        if loaded_owner is not None:
+            st.session_state.owner = loaded_owner
+            st.success(f"Loaded saved data for {loaded_owner.name}.")
+        else:
+            st.warning("No saved data found. Save some data first.")
+
     if st.button("Reset app data"):
         # Clearing the owner wipes all pets and tasks for a fresh start.
         st.session_state.pop("owner", None)
         st.success("App data cleared. Enter owner info to start again.")
+
     st.caption(
-        "Your data lives in this browser session. It is kept while the app is "
-        "open, but resets when the app restarts or you click **Reset app data**."
+        "Save data writes to **data.json** so your pets and tasks persist between "
+        "runs. Without saving, data lives only in this browser session and resets "
+        "when the app restarts or you click **Reset app data**."
     )
 
 # ---------------------------------------------------------------------------

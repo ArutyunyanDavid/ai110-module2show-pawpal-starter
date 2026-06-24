@@ -5,7 +5,14 @@ the Phase 4 "smarter scheduling" features: time sorting, filtering, conflict
 detection, and recurring tasks. Run it with:  python main.py
 """
 
-from pawpal_system import Owner, Pet, Task, Scheduler
+from pawpal_system import (
+    Owner,
+    Pet,
+    Task,
+    Scheduler,
+    save_owner_to_json,
+    load_owner_from_json,
+)
 
 
 def main() -> None:
@@ -74,6 +81,15 @@ def main() -> None:
     print("\nExplanation")
     print("===========")
     print(scheduler.explain_plan(plan))
+
+    # 10. Persistence check: save the owner to JSON and load it back.
+    print("\nPersistence Check")
+    print("=================")
+    save_owner_to_json(owner, "data.json")
+    print("Saved owner to data.json")
+    loaded = load_owner_from_json("data.json")
+    if loaded is not None:
+        print(f"Loaded owner: {loaded.name} with {len(loaded.pets)} pet(s)")
 
 
 if __name__ == "__main__":

@@ -7,6 +7,8 @@ The Scheduler turns each owner's pets and tasks into a daily plan that fits
 the owner's available time, putting the most important tasks first.
 """
 
+import json
+import os
 from dataclasses import dataclass, field
 
 # Maps a priority word to a number. Higher number = more important.
@@ -46,6 +48,29 @@ class Task:
         """Mark this task as done by setting completed to True."""
         self.completed = True
 
+    def to_dict(self) -> dict:
+        """Turn this task into a plain dictionary (for saving to JSON)."""
+        return {
+            "title": self.title,
+            "duration_minutes": self.duration_minutes,
+            "priority": self.priority,
+            "time": self.time,
+            "frequency": self.frequency,
+            "completed": self.completed,
+        }
+
+    @staticmethod
+    def from_dict(data: dict) -> "Task":
+        """Build a Task from a dictionary that was loaded from JSON."""
+        return Task(
+            title=data["title"],
+            duration_minutes=data["duration_minutes"],
+            priority=data.get("priority", "medium"),
+            time=data.get("time", "09:00"),
+            frequency=data.get("frequency", "once"),
+            completed=data.get("completed", False),
+        )
+
 
 @dataclass
 class Pet:
@@ -68,6 +93,21 @@ class Pet:
     def edit_task(self, index: int, task: Task) -> None:
         """Replace the task at the given position with an updated one."""
         self.tasks[index] = task
+
+    def to_dict(self) -> dict:
+        """Turn this pet (and all its tasks) into a dictionary for JSON."""
+        return {
+            "name": self.name,
+            "species": self.species,
+            "tasks": [task.to_dict() for task in self.tasks],
+        }
+
+    @staticmethod
+    def from_dict(data: dict) -> "Pet":
+        """Build a Pet (and its tasks) from a dictionary loaded from JSON."""
+        pet = Pet(name=data["name"], species=data.get("species", "other"))
+        pet.tasks = [Task.from_dict(task_data) for task_data in data.get("tasks", [])]
+        return pet
 
 
 class Owner:
@@ -94,6 +134,41 @@ class Owner:
     def total_tasks(self) -> int:
         """Count every task across all of this owner's pets."""
         return sum(len(pet.tasks) for pet in self.pets)
+
+    def to_dict(self) -> dict:
+        """Turn this owner (and all pets/tasks) into a dictionary for JSON."""
+        return {
+            "name": self.name,
+            "minutes_available": self.minutes_available,
+            "preferences": self.preferences,
+            "pets": [pet.to_dict() for pet in self.pets],
+        }
+
+    @staticmethod
+    def from_dict(data: dict) -> "Owner":
+        """Build an Owner (with pets and tasks) from a loaded dictionary."""
+        owner = Owner(
+            name=data["name"],
+            minutes_available=data.get("minutes_available", 60),
+        )
+        owner.preferences = data.get("preferences", [])
+        owner.pets = [Pet.from_dict(pet_data) for pet_data in data.get("pets", [])]
+        return owner
+
+
+def save_owner_to_json(owner: Owner, filename: str = "data.json") -> None:
+    """Save an owner (with all pets and tasks) to a JSON file."""
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(owner.to_dict(), f, indent=2)
+
+
+def load_owner_from_json(filename: str = "data.json") -> "Owner | None":
+    """Load an owner from a JSON file, or return None if the file is missing."""
+    if not os.path.exists(filename):
+        return None
+    with open(filename, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return Owner.from_dict(data)
 
 
 class Scheduler:

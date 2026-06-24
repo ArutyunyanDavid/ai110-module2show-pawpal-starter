@@ -16,8 +16,10 @@ conflicts, and explains its choices.
 - **Conflict detection** — warns when two tasks share the same start time.
 - **Recurring tasks** — completing a daily/weekly task generates its next occurrence.
 - **Plain-English explanation** — the scheduler explains why each task was chosen.
+- **Data persistence (bonus)** — save/load owner, pets, and tasks to `data.json`
+  so they persist between runs (see [Data Persistence](#-data-persistence)).
 - **Two front ends** — a CLI demo (`main.py`) and a Streamlit UI (`app.py`).
-- **Tested** — 15 automated `pytest` tests covering the core behaviors and edge cases.
+- **Tested** — 17 automated `pytest` tests covering the core behaviors and edge cases.
 
 ## ▶️ Running PawPal+
 
@@ -152,17 +154,21 @@ Passing output:
 platform win32 -- Python 3.14.5, pytest-9.0.3, pluggy-1.6.0
 rootdir: C:\Users\aruty\Desktop\ai110-module2show-pawpal-starter
 plugins: anyio-4.13.0
-collected 15 items
+collected 17 items
 
-tests\test_pawpal.py ...............                                     [100%]
+tests\test_pawpal.py .................                                   [100%]
 
-============================= 15 passed in 0.07s ==============================
+============================= 17 passed in 0.08s ==============================
 ```
 
+The suite also covers **JSON persistence**: saving an owner (with a pet and task)
+to a temporary file and loading it back preserves the name, pet count, task title,
+and completed status; loading a missing file returns `None` instead of crashing.
+
 Confidence Level: ⭐⭐⭐⭐☆ — The core scheduling behaviors (priority, time budget,
-sorting, filtering, recurrence, conflicts) and key edge cases are all covered.
-Future improvements could test more complex overlapping-duration conflicts and
-invalid input (e.g. malformed `"HH:MM"` times).
+sorting, filtering, recurrence, conflicts), persistence, and key edge cases are all
+covered. Future improvements could test more complex overlapping-duration conflicts
+and invalid input (e.g. malformed `"HH:MM"` times).
 
 ## 📐 Smarter Scheduling
 
@@ -172,6 +178,35 @@ invalid input (e.g. malformed `"HH:MM"` times).
 | Filtering | `Scheduler.filter_tasks()` | Filter by pet name and/or completion status. `generate_plan()` also filters out completed tasks. |
 | Conflict handling | `Scheduler.detect_conflicts()` | Lightweight exact-time match: flags two or more tasks sharing the same `"HH:MM"` start time. |
 | Recurring tasks | `Scheduler.handle_recurring_task()`, `Scheduler.mark_task_complete()` | `mark_task_complete()` marks a task done and, if it's `daily`/`weekly`, returns a fresh incomplete next occurrence; `once` returns `None`. |
+
+## 💾 Data Persistence
+
+PawPal+ can save and load the owner, their pets, and all tasks to/from a
+`data.json` file, so your data persists between application runs.
+
+**In the Streamlit app**, use the sidebar buttons:
+
+- **Save data** — writes the current owner (with pets and tasks) to `data.json`.
+- **Load data** — reads `data.json` back into the app; shows a warning if there is
+  no saved file yet.
+- **Reset app data** — clears the current session without touching the file.
+
+**In code**, persistence is handled by:
+
+- `save_owner_to_json(owner, filename="data.json")` — writes the owner to JSON.
+- `load_owner_from_json(filename="data.json")` — returns an `Owner`, or `None` if
+  the file does not exist (so it never crashes on a missing file).
+- `to_dict()` / `from_dict()` methods on `Task`, `Pet`, and `Owner` — convert each
+  object to/from a plain dictionary. Every `Task` field is stored: `title`,
+  `duration_minutes`, `priority`, `time`, `frequency`, and `completed`.
+
+The CLI demo (`python main.py`) also prints a short **Persistence Check** that
+saves the demo owner and loads it back to confirm it round-trips.
+
+**Files modified for this feature:** `pawpal_system.py` (serialization +
+save/load helpers), `app.py` (sidebar Save/Load buttons), `main.py` (persistence
+check), `tests/test_pawpal.py` (round-trip + missing-file tests), and `README.md`.
+The generated `data.json` is git-ignored so saved data isn't committed.
 
 ## 📸 Demo Walkthrough
 

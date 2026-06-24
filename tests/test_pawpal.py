@@ -1,6 +1,13 @@
 """Basic tests for the PawPal+ core system."""
 
-from pawpal_system import Owner, Pet, Task, Scheduler
+from pawpal_system import (
+    Owner,
+    Pet,
+    Task,
+    Scheduler,
+    save_owner_to_json,
+    load_owner_from_json,
+)
 
 
 def test_priority_rank_high_beats_low():
@@ -184,3 +191,28 @@ def test_task_too_large_to_fit_is_skipped():
     titles = [task.title for task in Scheduler(owner).generate_plan()]
     assert "Long hike" not in titles
     assert "Feeding" in titles
+
+
+def test_save_and_load_owner_roundtrip(tmp_path):
+    """Saving an owner to JSON and loading it back should preserve the data."""
+    owner = Owner(name="Jordan", minutes_available=90)
+    pet = Pet(name="Biscuit", species="dog")
+    pet.add_task(Task("Morning walk", 20, priority="high", completed=True))
+    owner.add_pet(pet)
+
+    # tmp_path is a pytest-provided temp folder, so the real data.json is safe.
+    save_file = tmp_path / "data.json"
+    save_owner_to_json(owner, str(save_file))
+    loaded = load_owner_from_json(str(save_file))
+
+    assert loaded is not None
+    assert loaded.name == "Jordan"
+    assert len(loaded.pets) == 1
+    assert loaded.pets[0].tasks[0].title == "Morning walk"
+    assert loaded.pets[0].tasks[0].completed is True
+
+
+def test_load_missing_file_returns_none(tmp_path):
+    """Loading a file that does not exist should return None, not crash."""
+    missing = tmp_path / "does_not_exist.json"
+    assert load_owner_from_json(str(missing)) is None

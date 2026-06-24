@@ -42,6 +42,29 @@ untracked a stray `__pycache__` file the agent's first import check created.
 | 4 — Algorithms | Add sorting, filtering, conflicts, recurrence | Added `sort_by_time`, `filter_tasks`, `detect_conflicts`, recurrence helpers; updated plan to skip completed tasks | Chose exact-time conflict detection over overlap detection and documented the tradeoff |
 | 5 — Testing | Build a stronger pytest suite | Drafted tests from a short test plan, reaching 15 tests incl. edge cases | Verified each test fails when behavior is wrong; ran suite + demo together |
 | 6 — Polish | Polish UI, finalize UML/README/reflection | Added a reset button + session note, synced both `.mmd` files to the code, finalized docs | Read through docs for honesty/accuracy; confirmed final checks pass |
+| Bonus — Persistence | Add a JSON save/load layer | See the Agent Workflow note below | See the Agent Workflow note below |
+
+### Bonus Agent Workflow — Data Persistence Layer
+
+**Task requested:** Implement JSON save/load so pets and tasks persist between runs.
+
+**Files modified:** `pawpal_system.py`, `app.py`, `main.py`,
+`tests/test_pawpal.py`, `README.md`, and `.gitignore`.
+
+**What the agent completed:**
+
+- Added `to_dict()` / `from_dict()` to `Task`, `Pet`, and `Owner`, storing every
+  task field (title, duration, priority, time, frequency, completed).
+- Added `save_owner_to_json()` and `load_owner_from_json()` helpers using the
+  built-in `json` module; loading a missing file returns `None` instead of crashing.
+- Added **Save data** / **Load data** sidebar buttons in `app.py` (keeping the
+  existing Reset button and session workflow intact).
+- Added a **Persistence Check** to `main.py` that saves and reloads the demo owner.
+- Added two `pytest` tests using `tmp_path` (save/load round-trip and missing-file).
+
+**Manual checks performed:** Ran `python main.py` (confirmed "Loaded owner: Jordan
+with 2 pet(s)"), `python -m pytest` (17 passed), and `python -m py_compile`. Added
+`data.json` to `.gitignore` so generated demo data isn't committed.
 
 ---
 
