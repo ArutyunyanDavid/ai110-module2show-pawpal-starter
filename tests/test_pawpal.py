@@ -122,3 +122,65 @@ def test_generate_plan_skips_completed_tasks():
     titles = [task.title for task in Scheduler(owner).generate_plan()]
     assert "Done walk" not in titles
     assert "Feeding" in titles
+
+
+def test_filter_tasks_by_pet_name():
+    """filter_tasks(pet_name=...) should only return that pet's tasks."""
+    owner = Owner(name="Jordan", minutes_available=120)
+    dog = Pet(name="Biscuit", species="dog")
+    cat = Pet(name="Mochi", species="cat")
+    dog.add_task(Task("Walk", 20))
+    cat.add_task(Task("Feeding", 10))
+    owner.add_pet(dog)
+    owner.add_pet(cat)
+    scheduler = Scheduler(owner)
+
+    dog_tasks = scheduler.filter_tasks(pet_name="Biscuit")
+    assert [task.title for task in dog_tasks] == ["Walk"]
+
+
+def test_weekly_task_recurrence_creates_next_occurrence():
+    """Completing a weekly task should return a fresh, incomplete next task."""
+    pet = Pet(name="Biscuit", species="dog")
+    weekly = Task("Bath", 30, frequency="weekly", time="10:00")
+    pet.add_task(weekly)
+    scheduler = Scheduler(_owner_with_pet(pet))
+
+    next_task = scheduler.mark_task_complete(weekly)
+    assert weekly.completed is True
+    assert next_task is not None
+    assert next_task.completed is False
+    assert next_task.frequency == "weekly"
+
+
+def test_detect_conflicts_returns_empty_when_no_clash():
+    """Tasks at different times should produce no conflict warnings."""
+    pet = Pet(name="Mochi", species="cat")
+    pet.add_task(Task("Walk", 20, time="08:00"))
+    pet.add_task(Task("Feeding", 10, time="12:00"))
+    scheduler = Scheduler(_owner_with_pet(pet))
+
+    assert scheduler.detect_conflicts() == []
+
+
+def test_empty_pet_produces_empty_plan():
+    """Edge case: a pet with no tasks yields an empty plan, not an error."""
+    owner = Owner(name="Jordan", minutes_available=60)
+    owner.add_pet(Pet(name="Biscuit", species="dog"))
+
+    plan = Scheduler(owner).generate_plan()
+    assert plan == []
+    assert owner.total_tasks() == 0
+
+
+def test_task_too_large_to_fit_is_skipped():
+    """Edge case: a task longer than all available time is left out."""
+    owner = Owner(name="Jordan", minutes_available=30)
+    pet = Pet(name="Mochi", species="cat")
+    pet.add_task(Task("Long hike", 90, priority="high"))  # cannot fit in 30 min
+    pet.add_task(Task("Feeding", 10, priority="high"))
+    owner.add_pet(pet)
+
+    titles = [task.title for task in Scheduler(owner).generate_plan()]
+    assert "Long hike" not in titles
+    assert "Feeding" in titles

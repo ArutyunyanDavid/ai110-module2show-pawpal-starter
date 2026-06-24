@@ -90,13 +90,32 @@ not compute an actual next date.
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+The most important behaviors to test were the ones a user relies on every day:
+that the scheduler respects `owner.minutes_available` (never over-books the day),
+that priority ranking and time sorting put tasks in the right order, that
+filtering and conflict detection report the right tasks, and that recurring tasks
+produce a correct next occurrence. These are the core promises of the app, so a
+bug in any of them would directly mislead the user.
+
+One edge case I made sure to test is a **pet with no tasks**: `generate_plan()`
+must return an empty list instead of crashing. I also tested a **task too long to
+fit** the time budget (90 minutes into a 30-minute day), confirming it is skipped
+while a shorter task is still scheduled.
+
+AI helped by drafting the initial test functions from a short test plan, which
+saved time writing boilerplate. But I did not blindly trust the generated tests:
+I verified each one was meaningful by checking that it would actually *fail* if
+the behavior were wrong (for example, the time-budget test sums real durations and
+compares against the limit, rather than just asserting the plan is non-empty). I
+also ran the full suite and the `main.py` demo together so the tests and the real
+program agreed on the same outputs.
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+Confidence Level: ⭐⭐⭐⭐☆ — The core scheduling behaviors and key edge cases all
+pass (15 tests). If I had more time I would test overlapping-duration conflicts
+(e.g. 9:00–9:30 vs 9:15–9:45, which the current exact-time check misses) and
+invalid input such as a malformed `"HH:MM"` time string.
 
 ---
 

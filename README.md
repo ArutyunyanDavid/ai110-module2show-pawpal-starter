@@ -100,18 +100,21 @@ Run the test suite with:
 python -m pytest
 ```
 
-The tests in `tests/test_pawpal.py` cover the most important behaviors:
+The 15 tests in `tests/test_pawpal.py` cover the most important behaviors:
 
 - **Priority ranking** — a high-priority task ranks higher than a low-priority one.
 - **Adding tasks** — adding a task to a pet increases that pet's task count.
 - **Task completion** — calling `mark_complete()` flips a task's `completed` flag to True.
 - **Time budget** — the generated plan never exceeds the owner's available minutes.
 - **Time sorting** — `sort_by_time()` returns tasks in chronological order.
-- **Filtering** — `filter_tasks()` can select or exclude completed tasks.
-- **Conflict detection** — duplicate task times are flagged by `detect_conflicts()`.
-- **Recurring tasks** — completing a daily task creates a fresh next occurrence;
-  a one-time task returns `None`.
+- **Filtering** — `filter_tasks()` can select/exclude completed tasks and filter by pet name.
+- **Conflict detection** — duplicate task times are flagged by `detect_conflicts()`,
+  and non-overlapping times produce no warnings.
+- **Recurring tasks** — completing a daily *or* weekly task creates a fresh next
+  occurrence; a one-time task returns `None`.
 - **Skipping completed tasks** — completed tasks never appear in the generated plan.
+- **Edge cases** — a pet with no tasks yields an empty plan (no crash), and a task
+  too long to fit the time budget is skipped while shorter ones still get scheduled.
 
 Passing output:
 
@@ -120,12 +123,17 @@ Passing output:
 platform win32 -- Python 3.14.5, pytest-9.0.3, pluggy-1.6.0
 rootdir: C:\Users\aruty\Desktop\ai110-module2show-pawpal-starter
 plugins: anyio-4.13.0
-collected 10 items
+collected 15 items
 
-tests\test_pawpal.py ..........                                          [100%]
+tests\test_pawpal.py ...............                                     [100%]
 
-============================= 10 passed in 0.06s ==============================
+============================= 15 passed in 0.07s ==============================
 ```
+
+Confidence Level: ⭐⭐⭐⭐☆ — The core scheduling behaviors (priority, time budget,
+sorting, filtering, recurrence, conflicts) and key edge cases are all covered.
+Future improvements could test more complex overlapping-duration conflicts and
+invalid input (e.g. malformed `"HH:MM"` times).
 
 ## 📐 Smarter Scheduling
 
