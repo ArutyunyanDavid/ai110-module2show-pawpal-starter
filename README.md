@@ -18,6 +18,10 @@ conflicts, and explains its choices.
 - **Plain-English explanation** — the scheduler explains why each task was chosen.
 - **Data persistence (bonus)** — save/load owner, pets, and tasks to `data.json`
   so they persist between runs (see [Data Persistence](#-data-persistence)).
+- **Professional Streamlit UI** — structured `st.table()` displays, sidebar
+  controls, color-coded warnings/success messages, and plain-English explanations
+  (see [Professional UI and Output Formatting](#-professional-ui-and-output-formatting)).
+- **Readable CLI output** — `main.py` prints clearly labeled section headings.
 - **Two front ends** — a CLI demo (`main.py`) and a Streamlit UI (`app.py`).
 - **Tested** — 17 automated `pytest` tests covering the core behaviors and edge cases.
 
@@ -207,6 +211,37 @@ saves the demo owner and loads it back to confirm it round-trips.
 save/load helpers), `app.py` (sidebar Save/Load buttons), `main.py` (persistence
 check), `tests/test_pawpal.py` (round-trip + missing-file tests), and `README.md`.
 The generated `data.json` is git-ignored so saved data isn't committed.
+
+## 🎨 Professional UI and Output Formatting
+
+PawPal+ presents its data with structured, readable formatting in both the web UI
+and the terminal, rather than dumping raw values.
+
+**In the Streamlit app (`app.py`):**
+
+- **Structured tables** — `st.table()` renders the list of pets, the current
+  tasks (with pet, task, time, duration, priority, frequency, completed columns),
+  and the generated schedule as clean tables.
+- **Status components** — clear, color-coded feedback using `st.success()` (owner
+  saved, pet/task added, data saved/loaded), `st.warning()` (conflict warnings and
+  missing-data states), `st.info()` (the scheduler's explanation), and
+  `st.caption()` (helper notes).
+- **Sidebar controls** — grouped **Save data**, **Load data**, and **Reset app
+  data** buttons keep actions organized and out of the main flow.
+- **Emoji branding** — the app title (`🐾 PawPal+`) and section icons give the app
+  a friendly, polished look.
+
+**In the CLI demo (`main.py`):**
+
+- **Section headings** — the terminal output is split into labeled, underlined
+  sections (`Today's Schedule`, `All Tasks Sorted by Time`,
+  `Filtered: Incomplete Tasks Only`, `Conflict Warnings`, `Recurring Task Example`,
+  `Explanation`, and `Persistence Check`) so a reader can scan the results easily.
+- **Consistent line formatting** — tasks are printed in a uniform
+  `time — title (duration) [priority]` style.
+
+**Files involved:** `app.py` (Streamlit formatting), `main.py` (CLI headings and
+formatting), and `README.md` (this documentation).
 
 ## 📸 Demo Walkthrough
 

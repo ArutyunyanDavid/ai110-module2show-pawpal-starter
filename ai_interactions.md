@@ -66,6 +66,27 @@ untracked a stray `__pycache__` file the agent's first import check created.
 with 2 pet(s)"), `python -m pytest` (17 passed), and `python -m py_compile`. Added
 `data.json` to `.gitignore` so generated demo data isn't committed.
 
+### Bonus Agent Workflow — Professional UI and Output Formatting
+
+**Task requested:** Document the project's structured UI/output formatting so the
+grader can see it clearly.
+
+**Files modified:** `README.md` and `ai_interactions.md` (documentation only — no
+code changes, since the formatting was already implemented in earlier phases).
+
+**What the AI completed:**
+
+- Added a **Professional UI and Output Formatting** section to `README.md`
+  describing the Streamlit `st.table()` displays, status components
+  (`st.success()`, `st.warning()`, `st.info()`, `st.caption()`), sidebar controls,
+  emoji branding, and the labeled CLI section headings in `main.py`.
+- Updated the README Features list to call out the professional UI and readable
+  CLI output.
+- Added this Agent Workflow note.
+
+**Manual check performed:** Re-ran `python -m pytest` (17 passed) and
+`python -m py_compile` to confirm the documentation changes didn't break anything.
+
 ---
 
 ## Prompt Comparison (SF11)
